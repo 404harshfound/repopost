@@ -39,21 +39,32 @@ export default function HistorySidebar({ open, onClose, history, activeId, onSel
 
   return (
     <div
-      className={`fixed top-0 left-0 z-40 h-full w-64 bg-[#f5f3f0] border-r border-[#e8e5e1] flex flex-col transition-transform duration-200 ${
+      className={`fixed top-0 left-0 z-40 h-full w-64 bg-[var(--surface)] border-r border-[var(--edge)] flex flex-col transition-transform duration-200 ${
         open ? "translate-x-0" : "-translate-x-full"
       }`}
     >
       {/* Header */}
-      <div className="h-14 px-3 flex items-center justify-between border-b border-[#e8e5e1]">
-        <button
-          onClick={onClose}
-          className="p-2 rounded-lg text-[#888] hover:text-[#1a1a1a] hover:bg-[#ebe8e4] transition-colors"
-        >
-          <PanelLeftClose className="h-[18px] w-[18px]" />
-        </button>
+      <div className="h-14 px-3 flex items-center justify-between border-b border-[var(--edge)]">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--elevated)] transition-colors"
+          >
+            <PanelLeftClose className="h-[18px] w-[18px]" />
+          </button>
+          <div className="flex items-center gap-2 ml-1">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#1a1a1a]">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4" />
+                <path d="M9 18c-4.51 2-5-2-7-2" />
+              </svg>
+            </div>
+            <span className="text-[13px] font-semibold tracking-[-0.02em] text-[var(--ink)]">RepoPost</span>
+          </div>
+        </div>
         <button
           onClick={onNewGeneration}
-          className="p-2 rounded-lg text-[#888] hover:text-[#1a1a1a] hover:bg-[#ebe8e4] transition-colors"
+          className="p-2 rounded-lg text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--elevated)] transition-colors"
         >
           <Plus className="h-[18px] w-[18px]" />
         </button>
@@ -63,14 +74,14 @@ export default function HistorySidebar({ open, onClose, history, activeId, onSel
       <div className="flex-1 overflow-y-auto py-2">
         {history.length === 0 ? (
           <div className="px-4 py-8 text-center">
-            <p className="text-[12px] text-[#bbb]">No history yet</p>
-            <p className="text-[11px] text-[#ccc] mt-1">Generated posts will appear here</p>
+            <p className="text-[12px] text-[var(--ink-muted)]">No history yet</p>
+            <p className="text-[11px] text-[var(--ink-faint)] mt-1">Generated posts will appear here</p>
           </div>
         ) : (
           Object.entries(groups).map(([label, items]) =>
             items.length > 0 && (
               <div key={label} className="mb-1">
-                <p className="px-4 pt-3 pb-1.5 text-[10px] font-medium text-[#aaa] uppercase tracking-wider">
+                <p className="px-4 pt-3 pb-1.5 text-[10px] font-medium text-[var(--ink-tertiary)] uppercase tracking-wider">
                   {label}
                 </p>
                 {items.map((item) => (
@@ -78,8 +89,8 @@ export default function HistorySidebar({ open, onClose, history, activeId, onSel
                     key={item.id}
                     className={`group relative mx-2 rounded-lg transition-colors ${
                       activeId === item.id
-                        ? "bg-[#ebe8e4]"
-                        : "hover:bg-[#ebe8e4]"
+                        ? "bg-[var(--elevated)]"
+                        : "hover:bg-[var(--elevated)]"
                     }`}
                   >
                     <button
@@ -87,20 +98,20 @@ export default function HistorySidebar({ open, onClose, history, activeId, onSel
                       className="w-full text-left px-3 py-2.5"
                     >
                       <div className="flex items-center gap-2">
-                        <Github className="h-3 w-3 text-[#bbb] shrink-0" />
-                        <span className="text-[13px] font-medium text-[#1a1a1a] truncate">
+                        <Github className="h-3 w-3 text-[var(--ink-muted)] shrink-0" />
+                        <span className="text-[13px] font-medium text-[var(--ink)] truncate">
                           {item.repoName}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 pl-5">
-                        <span className="text-[11px] text-[#999] capitalize">{item.tone}</span>
-                        <span className="text-[11px] text-[#ccc]">&middot;</span>
-                        <span className="text-[11px] text-[#bbb]">{timeAgo(item.createdAt)}</span>
+                        <span className="text-[11px] text-[var(--ink-tertiary)] capitalize">{item.tone}</span>
+                        <span className="text-[11px] text-[var(--ink-faint)]">&middot;</span>
+                        <span className="text-[11px] text-[var(--ink-muted)]">{timeAgo(item.createdAt)}</span>
                       </div>
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-[#ccc] hover:text-red-400 hover:bg-[#e5e2de] opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-[var(--ink-faint)] hover:text-red-400 hover:bg-[var(--elevated-hover)] opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <Trash2 className="h-3 w-3" />
                     </button>

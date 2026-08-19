@@ -3,8 +3,9 @@ import json
 import secrets
 from urllib.parse import urlencode
 
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(Path(__file__).parent / ".env")
 
 import httpx
 from fastapi import FastAPI, HTTPException

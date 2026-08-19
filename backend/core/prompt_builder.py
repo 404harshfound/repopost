@@ -5,6 +5,8 @@ TONE_SYSTEM_PROMPTS: dict[str, str] = {
         "Write in first person. Do not use emojis. Write 3-5 paragraphs. "
         "Mention the tech stack and key features. "
         "Output ONLY the post text — no preamble, no 'here\\'s your post', no markdown fences. "
+        "Do NOT use markdown formatting (no **bold**, no *italic*, no `backticks`, no bullet dashes). "
+        "LinkedIn only renders plain text — use line breaks and spacing for structure instead. "
         "Write as much as needed to do the project justice — no character limit. "
         "Include the repo URL at the end naturally."
     ),
@@ -16,6 +18,8 @@ TONE_SYSTEM_PROMPTS: dict[str, str] = {
         "Use short punchy lines. Engagement-bait style that actually works on LinkedIn. "
         "Include a CTA like 'check it out, link in comments'. "
         "Output ONLY the post text — no preamble, no 'here\\'s your post', no markdown fences. "
+        "Do NOT use markdown formatting (no **bold**, no *italic*, no `backticks`, no bullet dashes). "
+        "LinkedIn only renders plain text — use line breaks, spacing, and emojis for structure instead. "
         "Write as much as needed to do the project justice — no character limit. "
         "Include the repo URL at the end naturally."
     ),
@@ -24,8 +28,9 @@ TONE_SYSTEM_PROMPTS: dict[str, str] = {
         "Start by explaining what the project is and the problem it addresses. "
         "Then go into architecture and design decisions. "
         "Developer-to-developer. Mention specific tools and frameworks. Skip the fluff. "
-        "Use bullet points or code-block-friendly formatting where appropriate. "
         "Output ONLY the post text — no preamble, no 'here\\'s your post', no markdown fences. "
+        "Do NOT use markdown formatting (no **bold**, no *italic*, no `backticks`, no bullet dashes). "
+        "LinkedIn only renders plain text — use line breaks, spacing, and Unicode arrows/bullets for structure instead. "
         "Write as much as needed to do the project justice — no character limit. "
         "Include the repo URL at the end naturally."
     ),

@@ -1,10 +1,75 @@
-import { ArrowRight, Github, Sparkles, Zap } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Github, Sparkles, Zap, Sun, Moon, ExternalLink } from "lucide-react";
+
+function DecorativeNodes() {
+  return (
+    <svg className="absolute inset-0 w-full h-full hero-grid-nodes" style={{ zIndex: 0 }} viewBox="0 0 1200 700" fill="none" preserveAspectRatio="xMidYMid slice">
+      {/* Thin connecting lines */}
+      <line x1="150" y1="180" x2="350" y2="280" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+      <line x1="350" y1="280" x2="600" y2="200" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+      <line x1="600" y1="200" x2="900" y2="300" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+      <line x1="900" y1="300" x2="1050" y2="180" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+      <line x1="150" y1="480" x2="400" y2="400" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+      <line x1="850" y1="500" x2="1050" y2="420" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+
+      {/* Curved paths */}
+      <path d="M200 300 Q400 200 600 350" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" fill="none" />
+      <path d="M700 250 Q850 350 1000 280" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" fill="none" />
+
+      {/* Node dots */}
+      <circle cx="150" cy="180" r="3" fill="rgba(255,255,255,0.08)" />
+      <circle cx="150" cy="180" r="1.5" fill="rgba(255,255,255,0.15)" />
+
+      <circle cx="350" cy="280" r="2.5" fill="rgba(255,255,255,0.06)" />
+      <circle cx="350" cy="280" r="1" fill="rgba(255,255,255,0.12)" />
+
+      <circle cx="900" cy="300" r="3" fill="rgba(255,255,255,0.07)" />
+      <circle cx="900" cy="300" r="1.5" fill="rgba(255,255,255,0.14)" />
+
+      <circle cx="1050" cy="180" r="2.5" fill="rgba(255,255,255,0.06)" />
+      <circle cx="1050" cy="180" r="1" fill="rgba(255,255,255,0.12)" />
+
+      <circle cx="150" cy="480" r="2" fill="rgba(255,255,255,0.05)" />
+      <circle cx="850" cy="500" r="2.5" fill="rgba(255,255,255,0.06)" />
+      <circle cx="1050" cy="420" r="2" fill="rgba(255,255,255,0.05)" />
+
+      {/* Small labels near nodes */}
+      <text x="165" y="175" fill="rgba(255,255,255,0.12)" fontSize="9" fontFamily="system-ui">Fetch</text>
+      <text x="155" y="192" fill="rgba(255,255,255,0.07)" fontSize="7" fontFamily="system-ui">metadata</text>
+
+      <text x="910" y="295" fill="rgba(255,255,255,0.12)" fontSize="9" fontFamily="system-ui">Generate</text>
+      <text x="910" y="312" fill="rgba(255,255,255,0.07)" fontSize="7" fontFamily="system-ui">post</text>
+
+      <text x="1060" y="175" fill="rgba(255,255,255,0.12)" fontSize="9" fontFamily="system-ui">Share</text>
+      <text x="1060" y="192" fill="rgba(255,255,255,0.07)" fontSize="7" fontFamily="system-ui">LinkedIn</text>
+
+      <text x="155" y="495" fill="rgba(255,255,255,0.10)" fontSize="8" fontFamily="system-ui">README</text>
+      <text x="855" y="515" fill="rgba(255,255,255,0.10)" fontSize="8" fontFamily="system-ui">Commits</text>
+    </svg>
+  );
+}
 
 export default function Landing({ onNavigate }) {
-  return (
-    <div className="min-h-screen bg-[#f5f3f0] text-[#1a1a1a] font-[system-ui]">
+  const [theme, setTheme] = useState(
+    () => document.documentElement.getAttribute("data-theme") || "light"
+  );
 
-      <nav className="flex items-center justify-between px-8 py-5">
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    localStorage.setItem("repopost_theme", next);
+    if (next === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[var(--surface)] text-[var(--ink)] font-[system-ui]">
+
+      {/* Nav */}
+      <nav className="relative z-20 flex items-center justify-between px-8 py-5">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#1a1a1a]">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -14,78 +79,94 @@ export default function Landing({ onNavigate }) {
           </div>
           <span className="text-[15px] font-semibold tracking-[-0.02em]">RepoPost</span>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--elevated)] transition-colors"
+            title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          >
+            {theme === "light" ? <Moon className="h-[18px] w-[18px]" /> : <Sun className="h-[18px] w-[18px]" />}
+          </button>
           <button
             onClick={() => onNavigate("auth")}
-            className="text-[13px] text-[#888] hover:text-[#1a1a1a] transition-colors"
+            className="text-[13px] text-[var(--ink-dim)] hover:text-[var(--ink)] transition-colors"
           >
             Sign In
           </button>
           <button
             onClick={() => onNavigate("auth")}
-            className="rounded-xl bg-[#1a1a1a] px-5 py-2 text-[13px] font-medium text-white hover:bg-[#333] transition-colors"
+            className="rounded-xl bg-[var(--btn)] px-5 py-2 text-[13px] font-medium text-[var(--btn-text)] hover:bg-[var(--btn-hover)] transition-colors"
           >
             Get Started
           </button>
         </div>
       </nav>
 
-      <section className="max-w-6xl mx-auto px-8 pt-24 pb-32">
-        <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.035em] text-[#1a1a1a]">
-            Turn repos into
-            <br />
-            LinkedIn posts
-          </h1>
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        {/* Atmospheric glow + decorative nodes */}
+        <div className="hero-glow" />
+        <DecorativeNodes />
 
-          <p className="mt-5 text-[17px] leading-[1.6] text-[#888] max-w-md mx-auto">
-            Paste any public GitHub repository and get a polished,
-            ready-to-post LinkedIn post in seconds.
-          </p>
+        <div className="relative z-10 max-w-6xl mx-auto px-8 pt-24 pb-32">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.035em] text-[var(--ink)]">
+              Turn repos into
+              <br />
+              LinkedIn posts
+            </h1>
 
-          <div className="mt-10 flex items-center justify-center gap-3">
-            <button
-              onClick={() => onNavigate("auth")}
-              className="rounded-2xl bg-[#1a1a1a] px-7 py-3.5 text-[14px] font-medium text-white hover:bg-[#333] transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center gap-2"
-            >
-              Get Started
-              <ArrowRight className="h-4 w-4" />
-            </button>
-            <a
-              href="https://github.com/404harshfound"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-2xl border border-[#e0ddd9] bg-white px-7 py-3.5 text-[14px] font-medium text-[#1a1a1a] hover:bg-[#f5f3f0] transition-colors flex items-center gap-2"
-            >
-              <Github className="h-4 w-4" />
-              GitHub
-            </a>
-          </div>
-        </div>
+            <p className="mt-5 text-[17px] leading-[1.6] text-[var(--ink-dim)] max-w-md mx-auto">
+              Paste any public GitHub repository and get a polished,
+              ready-to-post LinkedIn post in seconds.
+            </p>
 
-        <div className="mt-24 rounded-3xl bg-white p-8 shadow-[0_2px_12px_rgba(0,0,0,0.06)] max-w-lg mx-auto">
-          <div className="rounded-2xl bg-[#f5f3f0] p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#ddd]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#ddd]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#ddd]" />
-            </div>
-            <div className="space-y-2.5">
-              <div className="h-3 rounded-full bg-[#e0ddd9] w-3/4" />
-              <div className="h-3 rounded-full bg-[#e0ddd9] w-full" />
-              <div className="h-3 rounded-full bg-[#e0ddd9] w-5/6" />
-              <div className="h-3 rounded-full bg-[#e0ddd9] w-2/3" />
+            <div className="mt-10 flex items-center justify-center gap-3">
+              <button
+                onClick={() => onNavigate("auth")}
+                className="rounded-2xl bg-[var(--btn)] px-7 py-3.5 text-[14px] font-medium text-[var(--btn-text)] hover:bg-[var(--btn-hover)] transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center gap-2"
+              >
+                Get Started
+                <ArrowRight className="h-4 w-4" />
+              </button>
+              <a
+                href="https://github.com/404harshfound"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl border border-[var(--edge-muted)] bg-[var(--card)] px-7 py-3.5 text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--card-hover)] transition-colors flex items-center gap-2"
+              >
+                <Github className="h-4 w-4" />
+                GitHub
+              </a>
             </div>
           </div>
-          <p className="mt-5 text-center text-[13px] text-[#bbb]">
-            AI-generated LinkedIn posts from your code
-          </p>
+
+          {/* Preview card */}
+          <div className="mt-24 rounded-3xl bg-[var(--card)] p-8 shadow-[0_2px_20px_rgba(0,0,0,0.08)] border border-[var(--edge)] max-w-lg mx-auto backdrop-blur-sm">
+            <div className="rounded-2xl bg-[var(--surface)] p-6 border border-[var(--edge-light)]">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2.5 h-2.5 rounded-full bg-[var(--ink-ghost)]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[var(--ink-ghost)]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[var(--ink-ghost)]" />
+              </div>
+              <div className="space-y-2.5">
+                <div className="h-3 rounded-full bg-[var(--edge-muted)] w-3/4" />
+                <div className="h-3 rounded-full bg-[var(--edge-muted)] w-full" />
+                <div className="h-3 rounded-full bg-[var(--edge-muted)] w-5/6" />
+                <div className="h-3 rounded-full bg-[var(--edge-muted)] w-2/3" />
+              </div>
+            </div>
+            <p className="mt-5 text-center text-[13px] text-[var(--ink-muted)]">
+              AI-generated LinkedIn posts from your code
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="border-t border-[#e8e5e1] bg-white">
+      {/* How it works */}
+      <section className="relative border-t border-[var(--edge)] bg-[var(--card)]">
         <div className="max-w-6xl mx-auto px-8 py-24">
-          <p className="text-center text-[12px] font-medium text-[#bbb] uppercase tracking-wider mb-12">
+          <p className="text-center text-[12px] font-medium text-[var(--ink-muted)] uppercase tracking-wider mb-12">
             How it works
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -106,14 +187,14 @@ export default function Landing({ onNavigate }) {
                 desc: "AI generates a polished LinkedIn post under 1300 characters. Copy it and post directly.",
               },
             ].map((step, i) => (
-              <div key={i} className="rounded-2xl bg-[#f5f3f0] p-6">
+              <div key={i} className="rounded-2xl bg-[var(--surface)] p-6 border border-[var(--edge-light)]">
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#1a1a1a] text-white mb-4">
                   {step.icon}
                 </div>
                 <h3 className="text-[15px] font-semibold tracking-[-0.01em] mb-2">
                   {step.title}
                 </h3>
-                <p className="text-[13px] leading-[1.6] text-[#888]">
+                <p className="text-[13px] leading-[1.6] text-[var(--ink-dim)]">
                   {step.desc}
                 </p>
               </div>
@@ -122,12 +203,13 @@ export default function Landing({ onNavigate }) {
         </div>
       </section>
 
-      <footer className="border-t border-[#e8e5e1] px-8 py-6">
+      {/* Footer */}
+      <footer className="border-t border-[var(--edge)] px-8 py-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-[12px] text-[#bbb]">
+          <span className="text-[12px] text-[var(--ink-muted)]">
             RepoPost &middot; Built with Groq
           </span>
-          <span className="text-[12px] text-[#bbb]">
+          <span className="text-[12px] text-[var(--ink-muted)]">
             Open Source
           </span>
         </div>

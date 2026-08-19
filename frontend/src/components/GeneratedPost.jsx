@@ -26,7 +26,7 @@ function renderInline(text) {
     } else if (match[3]) {
       parts.push(<em key={match.index}>{match[3]}</em>);
     } else if (match[4]) {
-      parts.push(<code key={match.index} className="bg-[#f0eeeb] px-1 py-0.5 rounded text-[13px]">{match[4]}</code>);
+      parts.push(<code key={match.index} className="bg-[var(--surface)] px-1 py-0.5 rounded text-[13px]">{match[4]}</code>);
     }
     last = match.index + match[0].length;
   }
@@ -57,12 +57,12 @@ export default function GeneratedPost({ post, onRegenerate, linkedinProfile }) {
 
   return (
     <div className="mt-8">
-      <p className="text-[12px] font-medium text-[#999] tracking-wide uppercase mb-3 px-1">
+      <p className="text-[12px] font-medium text-[var(--ink-tertiary)] tracking-wide uppercase mb-3 px-1">
         Preview
       </p>
 
       {/* LinkedIn Post Card */}
-      <div className="rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden border border-[#e8e5e1]">
+      <div className="rounded-2xl bg-[var(--card)] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden border border-[var(--edge)]">
 
         {/* Header */}
         <div className="px-4 pt-4 pb-2 flex items-start justify-between">
@@ -71,10 +71,11 @@ export default function GeneratedPost({ post, onRegenerate, linkedinProfile }) {
               <img
                 src={linkedinProfile.photoUrl}
                 alt={linkedinProfile.name}
-                className="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-white"
+                className="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-[var(--card)]"
+                referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0a66c2] to-[#004182] flex items-center justify-center shrink-0 ring-2 ring-white">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0a66c2] to-[#004182] flex items-center justify-center shrink-0 ring-2 ring-[var(--card)]">
                 <span className="text-white text-[17px] font-bold">
                   {(linkedinProfile?.name || "Y")[0].toUpperCase()}
                 </span>
@@ -82,39 +83,39 @@ export default function GeneratedPost({ post, onRegenerate, linkedinProfile }) {
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-[14px] font-semibold text-[#191919] leading-tight hover:text-[#0a66c2] hover:underline cursor-pointer">
+                <span className="text-[14px] font-semibold text-[var(--ink)] leading-tight hover:text-[#0a66c2] hover:underline cursor-pointer">
                   {linkedinProfile?.name || "Your Name"}
                 </span>
                 <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
                   <rect width="16" height="16" rx="2" fill="#0a66c2"/>
                   <text x="4" y="12" fontSize="10" fontWeight="bold" fill="white" fontFamily="system-ui">in</text>
                 </svg>
-                <span className="text-[12px] text-[#666]">&middot;</span>
-                <span className="text-[12px] font-medium text-[#666]">Following</span>
+                <span className="text-[12px] text-[var(--ink-secondary)]">&middot;</span>
+                <span className="text-[12px] font-medium text-[var(--ink-secondary)]">Following</span>
               </div>
-              <p className="text-[12px] text-[#666] leading-snug mt-0.5 line-clamp-1">
+              <p className="text-[12px] text-[var(--ink-secondary)] leading-snug mt-0.5 line-clamp-1">
                 {linkedinProfile?.headline || "Software Developer"}
               </p>
               <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[12px] text-[#999]">Just now</span>
-                <span className="text-[12px] text-[#999]">&middot;</span>
-                <Globe className="h-3 w-3 text-[#999]" />
+                <span className="text-[12px] text-[var(--ink-tertiary)]">Just now</span>
+                <span className="text-[12px] text-[var(--ink-tertiary)]">&middot;</span>
+                <Globe className="h-3 w-3 text-[var(--ink-tertiary)]" />
               </div>
             </div>
           </div>
           <div className="flex items-center gap-1 shrink-0 ml-2">
-            <button className="p-1.5 rounded-full hover:bg-[#f5f3f0] transition-colors">
-              <MoreHorizontal className="h-5 w-5 text-[#666]" />
+            <button className="p-1.5 rounded-full hover:bg-[var(--surface)] transition-colors">
+              <MoreHorizontal className="h-5 w-5 text-[var(--ink-secondary)]" />
             </button>
-            <button className="p-1.5 rounded-full hover:bg-[#f5f3f0] transition-colors">
-              <X className="h-5 w-5 text-[#666]" />
+            <button className="p-1.5 rounded-full hover:bg-[var(--surface)] transition-colors">
+              <X className="h-5 w-5 text-[var(--ink-secondary)]" />
             </button>
           </div>
         </div>
 
         {/* Post Content */}
         <div className="px-4 pb-3">
-          <p className="whitespace-pre-wrap text-[14px] leading-[1.5] text-[#191919]">
+          <p className="whitespace-pre-wrap text-[14px] leading-[1.5] text-[var(--ink)]">
             {renderFormattedText(post)}
           </p>
         </div>
@@ -123,20 +124,20 @@ export default function GeneratedPost({ post, onRegenerate, linkedinProfile }) {
         <div className="px-4 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <div className="flex -space-x-0.5">
-              <span className="w-[18px] h-[18px] rounded-full bg-[#0a66c2] flex items-center justify-center text-[10px] ring-1 ring-white">👍</span>
-              <span className="w-[18px] h-[18px] rounded-full bg-[#df704d] flex items-center justify-center text-[10px] ring-1 ring-white">❤️</span>
-              <span className="w-[18px] h-[18px] rounded-full bg-[#7fc15e] flex items-center justify-center text-[10px] ring-1 ring-white">👏</span>
+              <span className="w-[18px] h-[18px] rounded-full bg-[#0a66c2] flex items-center justify-center text-[10px] ring-1 ring-[var(--card)]">👍</span>
+              <span className="w-[18px] h-[18px] rounded-full bg-[#df704d] flex items-center justify-center text-[10px] ring-1 ring-[var(--card)]">❤️</span>
+              <span className="w-[18px] h-[18px] rounded-full bg-[#7fc15e] flex items-center justify-center text-[10px] ring-1 ring-[var(--card)]">👏</span>
             </div>
-            <span className="text-[12px] text-[#666]">325</span>
+            <span className="text-[12px] text-[var(--ink-secondary)]">325</span>
           </div>
-          <div className="flex items-center gap-3 text-[12px] text-[#666]">
+          <div className="flex items-center gap-3 text-[12px] text-[var(--ink-secondary)]">
             <span>4 comments</span>
             <span>1 repost</span>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="mx-4 border-t border-[#e8e5e1]" />
+        <div className="mx-4 border-t border-[var(--edge)]" />
 
         {/* Action Bar */}
         <div className="px-2 py-1 flex items-center justify-between">
@@ -148,7 +149,7 @@ export default function GeneratedPost({ post, onRegenerate, linkedinProfile }) {
           ].map(({ icon, label }) => (
             <button
               key={label}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg py-3 text-[12px] font-semibold text-[#666] hover:bg-[#f5f3f0] transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg py-3 text-[12px] font-semibold text-[var(--ink-secondary)] hover:bg-[var(--surface)] transition-colors"
             >
               {icon}
               {label}
@@ -159,13 +160,13 @@ export default function GeneratedPost({ post, onRegenerate, linkedinProfile }) {
 
       {/* Controls below card */}
       <div className="mt-4 flex items-center justify-between px-1">
-        <span className={`text-[12px] tabular-nums ${isOverLimit ? "text-red-400" : "text-[#bbb]"}`}>
-          {charCount} / 1300
+        <span className="text-[12px] tabular-nums text-[var(--ink-muted)]">
+          {charCount} chars{isOverLimit && <span className="text-amber-500 ml-1">&middot; may be truncated on LinkedIn</span>}
         </span>
         <div className="flex gap-1.5">
           <button
             onClick={handleCopy}
-            className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12px] font-medium transition-all duration-200 bg-white text-[#666] hover:bg-[#eae7e3] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+            className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12px] font-medium transition-all duration-200 bg-[var(--card)] text-[var(--ink-secondary)] hover:bg-[var(--elevated)] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
           >
             {copied ? (
               <>
@@ -181,7 +182,7 @@ export default function GeneratedPost({ post, onRegenerate, linkedinProfile }) {
           </button>
           <button
             onClick={onRegenerate}
-            className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12px] font-medium transition-all duration-200 bg-white text-[#666] hover:bg-[#eae7e3] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+            className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12px] font-medium transition-all duration-200 bg-[var(--card)] text-[var(--ink-secondary)] hover:bg-[var(--elevated)] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Regenerate
