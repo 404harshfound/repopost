@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+__pycache__/
+*.pyc
+.DS_Store
+.impeccable/
+.codex/
+.cursor/
+.grok/

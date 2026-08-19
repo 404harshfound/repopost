@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install *)",
+      "Bash(python3 -m pip install -q httpx)",
+      "Bash(python3 core/github_fetcher.py)",
+      "Bash(python3 core/prompt_builder.py)",
+      "Bash(python3 -m pip install -q groq python-dotenv)",
+      "Bash(python3 -m uvicorn main:app --reload --port 8000)",
+      "Bash(curl -s -X POST http://localhost:8000/generate -H 'Content-Type: application/json' -d '{\"repo_url\": \"https://github.com/404harshfound/Blood-Bank-Management-System\", \"tone\": \"professional\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:8000/generate -H 'Content-Type: application/json' -d '{\"repo_url\": \"https://github.com/owner/repo\", \"tone\": \"funny\"}')",
+      "Bash(curl -s -X POST http://localhost:8000/generate -H 'Content-Type: application/json' -d '{\"repo_url\": \"https://gitlab.com/owner/repo\", \"tone\": \"professional\"}')",
+      "Bash(curl -s -X POST http://localhost:8000/generate -H 'Content-Type: application/json' -d '{\"repo_url\": \"https://github.com/nonexistent-user-xyz/nonexistent-repo-abc\", \"tone\": \"hype\"}')"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ ! -f '/Users/harshraj/.claude/skills/impeccable/scripts/hook.mjs' ] || node '/Users/harshraj/.claude/skills/impeccable/scripts/hook.mjs'",
+            "timeout": 5,
+            "statusMessage": "Checking UI changes"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ ! -f '/Users/harshraj/.claude/skills/impeccable/scripts/hook.mjs' ] || node '/Users/harshraj/.claude/skills/impeccable/scripts/hook.mjs'",
+            "timeout": 30,
+            "statusMessage": "Design deep pass"
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Impeccable design detector: immediate-tier checks after Edit/Write/MultiEdit on UI files, full-rule deep pass on Stop."
+}
