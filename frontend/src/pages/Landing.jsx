@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Github, Sparkles, Zap, Sun, Moon, ExternalLink } from "lucide-react";
+import { ArrowRight, Github, Sparkles, Zap, Sun, Moon, ExternalLink, Linkedin } from "lucide-react";
 
 function DecorativeNodes() {
   return (
@@ -205,13 +205,30 @@ export default function Landing({ onNavigate }) {
 
       {/* Footer */}
       <footer className="border-t border-[var(--edge)] px-8 py-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3">
           <span className="text-[12px] text-[var(--ink-muted)]">
-            RepoPost &middot; Built with Groq
+            RepoPost &middot; Built by Harsh Raj &middot; Open Source
           </span>
-          <span className="text-[12px] text-[var(--ink-muted)]">
-            Open Source
-          </span>
+          <div className="flex items-center gap-4">
+            <a
+              href="https://github.com/404harshfound"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[12px] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
+            >
+              <Github className="h-3.5 w-3.5" />
+              GitHub
+            </a>
+            <a
+              href="https://www.linkedin.com/in/harsh-raj19/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[12px] text-[var(--ink-muted)] hover:text-[#0a66c2] transition-colors"
+            >
+              <Linkedin className="h-3.5 w-3.5" />
+              LinkedIn
+            </a>
+          </div>
         </div>
       </footer>
     </div>
