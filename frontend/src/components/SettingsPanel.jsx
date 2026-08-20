@@ -4,6 +4,25 @@ import { useState } from "react";
 const TONES = ["professional", "hype", "technical"];
 const API_URL = import.meta.env.VITE_API_URL || "";
 
+const HEADLINE_SUGGESTIONS = [
+  "Software Engineer", "Senior Software Engineer", "Staff Software Engineer", "Principal Engineer",
+  "Software Developer", "Full Stack Developer", "Frontend Developer", "Backend Developer",
+  "Web Developer", "Mobile Developer", "iOS Developer", "Android Developer", "Game Developer",
+  "Embedded Systems Engineer", "Firmware Engineer", "DevOps Engineer", "Site Reliability Engineer",
+  "Cloud Engineer", "Cloud Architect", "Solutions Architect", "Systems Architect",
+  "Systems Administrator", "Network Engineer", "Database Administrator", "Data Engineer",
+  "Data Scientist", "Data Analyst", "Machine Learning Engineer", "AI Engineer", "AI Researcher",
+  "MLOps Engineer", "Computer Vision Engineer", "NLP Engineer", "Blockchain Developer",
+  "Smart Contract Developer", "Security Engineer", "Cybersecurity Analyst", "Penetration Tester",
+  "QA Engineer", "Test Automation Engineer", "Technical Lead", "Engineering Manager",
+  "Director of Engineering", "VP of Engineering", "CTO", "Founder", "Co-Founder",
+  "Product Manager", "Technical Product Manager", "Product Designer", "UX Designer", "UI Designer",
+  "UX Researcher", "Graphic Designer", "Business Analyst", "IT Consultant", "Technical Consultant",
+  "Technical Writer", "Developer Advocate", "Developer Relations Engineer", "Open Source Contributor",
+  "Freelance Developer", "Software Development Intern", "Computer Science Student",
+  "Student Developer", "Research Assistant", "Teaching Assistant",
+];
+
 const PROVIDER_LABELS = {
   github: "GitHub",
   google: "Google",
@@ -42,11 +61,14 @@ export default function SettingsPanel({
   onLinkedinDisconnected,
   defaultTone,
   onChangeTone,
+  headline,
+  onChangeHeadline,
 }) {
   const [toneDropdownOpen, setToneDropdownOpen] = useState(false);
   const [theme, setTheme] = useState(
     () => document.documentElement.getAttribute("data-theme") || "light"
   );
+  const [headlineInput, setHeadlineInput] = useState(headline || "");
 
   if (!open) return null;
 
@@ -147,6 +169,29 @@ export default function SettingsPanel({
                     </span>
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-[var(--edge-light)]">
+                <label className="block text-[11px] font-medium text-[var(--ink-muted)] uppercase tracking-wider mb-1.5">
+                  Headline shown on LinkedIn preview
+                </label>
+                <input
+                  list="headline-suggestions"
+                  type="text"
+                  value={headlineInput}
+                  onChange={(e) => setHeadlineInput(e.target.value)}
+                  onBlur={() => onChangeHeadline(headlineInput.trim())}
+                  placeholder="e.g. Software Developer"
+                  className="w-full rounded-lg bg-[var(--card)] border border-[var(--edge)] px-3 py-2 text-[13px] text-[var(--ink)] placeholder-[var(--ink-muted)] outline-none focus:border-[#0a66c2] transition-colors"
+                />
+                <datalist id="headline-suggestions">
+                  {HEADLINE_SUGGESTIONS.map((h) => (
+                    <option key={h} value={h} />
+                  ))}
+                </datalist>
+                <p className="mt-1.5 text-[10px] text-[var(--ink-faint)]">
+                  Type anything, or pick from suggestions. Defaults to "Software Developer" if left blank.
+                </p>
               </div>
             </div>
           </section>
@@ -327,8 +372,33 @@ export default function SettingsPanel({
                 RepoPost
               </p>
               <p className="text-[11px] text-[var(--ink-tertiary)] mt-0.5">
-                v1.0.0 &middot; Built with Groq &middot; Open Source
+                v1.0.0 &middot; Built by Harsh Raj &middot; Open Source
               </p>
+              <div className="mt-3 pt-3 border-t border-[var(--edge-light)]">
+                <p className="text-[11px] font-medium text-[var(--ink-muted)] uppercase tracking-wider mb-2">
+                  Connect with Harsh
+                </p>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://github.com/404harshfound"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium bg-[var(--elevated)] text-[var(--ink-secondary)] hover:bg-[var(--elevated-hover)] transition-colors"
+                  >
+                    <Github className="h-3.5 w-3.5" />
+                    GitHub
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/in/harsh-raj19/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium bg-[var(--elevated)] text-[#0a66c2] hover:bg-[var(--elevated-hover)] transition-colors"
+                  >
+                    <Linkedin className="h-3.5 w-3.5" />
+                    LinkedIn
+                  </a>
+                </div>
+              </div>
             </div>
           </section>
         </div>

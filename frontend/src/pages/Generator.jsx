@@ -84,10 +84,12 @@ export default function Generator({ onNavigate, session }) {
     photoUrl: userMeta.avatar_url || userMeta.picture || null,
   };
 
-  // Use LinkedIn profile for preview if connected, otherwise fall back to Supabase profile
-  const previewProfile = linkedinConnected && linkedinProfile
-    ? linkedinProfile
-    : supabaseProfile;
+  // Use LinkedIn profile for preview if connected, otherwise fall back to Supabase profile.
+  // A user-set custom headline always wins over whatever the provider returned.
+  const previewProfile = {
+    ...(linkedinConnected && linkedinProfile ? linkedinProfile : supabaseProfile),
+    ...(userMeta.headline ? { headline: userMeta.headline } : {}),
+  };
 
   const hasContent = post || loading || error;
 
@@ -251,6 +253,10 @@ export default function Generator({ onNavigate, session }) {
     });
   };
 
+  const handleChangeHeadline = (newHeadline) => {
+    supabase.auth.updateUser({ data: { headline: newHeadline } });
+  };
+
   const handleSelectRepo = (repo) => {
     setUrl(repo.url);
     setRepoDropdownOpen(false);
@@ -373,6 +379,8 @@ export default function Generator({ onNavigate, session }) {
         onLinkedinDisconnected={handleLinkedinDisconnected}
         defaultTone={tone}
         onChangeTone={setTone}
+        headline={userMeta.headline || ""}
+        onChangeHeadline={handleChangeHeadline}
       />
 
       <div
