@@ -10,8 +10,6 @@ import RepoSummary from "../components/RepoSummary";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 const HISTORY_KEY = "repopost_history";
-const GITHUB_KEY = "repopost_github";
-const LINKEDIN_KEY = "repopost_linkedin";
 
 function loadHistory() {
   try {
@@ -23,22 +21,6 @@ function loadHistory() {
 
 function saveHistory(history) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-}
-
-function loadGithub() {
-  try {
-    return JSON.parse(localStorage.getItem(GITHUB_KEY));
-  } catch {
-    return null;
-  }
-}
-
-function loadLinkedin() {
-  try {
-    return JSON.parse(localStorage.getItem(LINKEDIN_KEY));
-  } catch {
-    return null;
-  }
 }
 
 function extractRepoName(url) {
@@ -59,20 +41,38 @@ export default function Generator({ onNavigate, session }) {
   const [activeHistoryId, setActiveHistoryId] = useState(null);
   const [history, setHistory] = useState(loadHistory);
 
-  const savedGithub = loadGithub();
-  const savedLinkedin = loadLinkedin();
+  const user = session?.user;
+  const userMeta = user?.user_metadata || {};
 
-  const [githubConnected, setGithubConnected] = useState(!!savedGithub);
-  const [githubUsername, setGithubUsername] = useState(savedGithub?.username || "");
+  // Connected-account state lives on the Supabase user's metadata, not the browser,
+  // so it follows the account across devices and across whichever provider is used
+  // to sign in next (accounts auto-link by email across Google/GitHub/LinkedIn).
+  const [githubConnected, setGithubConnected] = useState(!!userMeta.github_username);
+  const [githubUsername, setGithubUsername] = useState(userMeta.github_username || "");
   const [githubRepos, setGithubRepos] = useState([]);
   const [repoDropdownOpen, setRepoDropdownOpen] = useState(false);
 
-  const [linkedinConnected, setLinkedinConnected] = useState(!!savedLinkedin);
-  const [linkedinProfile, setLinkedinProfile] = useState(savedLinkedin);
+  const [linkedinConnected, setLinkedinConnected] = useState(!!userMeta.linkedin_connected);
+  const [linkedinProfile, setLinkedinProfile] = useState(
+    userMeta.linkedin_connected
+      ? {
+          name: userMeta.linkedin_name || "",
+          headline: userMeta.linkedin_headline || "",
+          photoUrl: userMeta.linkedin_photo_url || null,
+        }
+      : null
+  );
 
-  const user = session?.user;
-  const userMeta = user?.user_metadata || {};
-  const provider = user?.app_metadata?.provider;
+  // app_metadata.provider is sticky (set once at account creation) and doesn't
+  // reflect which provider was used for THIS sign-in when accounts are auto-linked
+  // by email. Derive it from the most recently used identity instead.
+  const identities = user?.identities || [];
+  const latestIdentity = identities.length
+    ? [...identities].sort(
+        (a, b) => new Date(b.last_sign_in_at) - new Date(a.last_sign_in_at)
+      )[0]
+    : null;
+  const provider = latestIdentity?.provider || user?.app_metadata?.provider;
 
   const supabaseProfile = {
     name:
@@ -91,16 +91,18 @@ export default function Generator({ onNavigate, session }) {
 
   const hasContent = post || loading || error;
 
-  // Auto-connect GitHub if signed in via GitHub
+  // Auto-connect GitHub if signed in via GitHub, and remember it on the account
   useEffect(() => {
     if (provider === "github" && userMeta.user_name && !githubConnected) {
       setGithubUsername(userMeta.user_name);
       setGithubConnected(true);
-      localStorage.setItem(GITHUB_KEY, JSON.stringify({ username: userMeta.user_name }));
+      if (!userMeta.github_username) {
+        supabase.auth.updateUser({ data: { github_username: userMeta.user_name } });
+      }
     }
   }, [provider, userMeta.user_name]);
 
-  // Auto-connect LinkedIn if signed in via LinkedIn
+  // Auto-connect LinkedIn if signed in via LinkedIn, and remember it on the account
   useEffect(() => {
     if (provider === "linkedin_oidc" && !linkedinConnected) {
       const profile = {
@@ -110,7 +112,16 @@ export default function Generator({ onNavigate, session }) {
       };
       setLinkedinProfile(profile);
       setLinkedinConnected(true);
-      localStorage.setItem(LINKEDIN_KEY, JSON.stringify(profile));
+      if (!userMeta.linkedin_connected) {
+        supabase.auth.updateUser({
+          data: {
+            linkedin_connected: true,
+            linkedin_name: profile.name,
+            linkedin_headline: profile.headline,
+            linkedin_photo_url: profile.photoUrl,
+          },
+        });
+      }
     }
   }, [provider]);
 
@@ -128,7 +139,7 @@ export default function Generator({ onNavigate, session }) {
         setGithubUsername(data.username);
         setGithubRepos(data.repos || []);
         setGithubConnected(true);
-        localStorage.setItem(GITHUB_KEY, JSON.stringify({ username: data.username }));
+        supabase.auth.updateUser({ data: { github_username: data.username } });
       } else if (data.type === "linkedin-auth") {
         const profile = {
           name: data.name,
@@ -137,7 +148,14 @@ export default function Generator({ onNavigate, session }) {
         };
         setLinkedinProfile(profile);
         setLinkedinConnected(true);
-        localStorage.setItem(LINKEDIN_KEY, JSON.stringify(profile));
+        supabase.auth.updateUser({
+          data: {
+            linkedin_connected: true,
+            linkedin_name: profile.name,
+            linkedin_headline: profile.headline,
+            linkedin_photo_url: profile.photoUrl,
+          },
+        });
       }
     };
     window.addEventListener("message", handleMessage);
@@ -217,13 +235,20 @@ export default function Generator({ onNavigate, session }) {
     setGithubConnected(false);
     setGithubRepos([]);
     setGithubUsername("");
-    localStorage.removeItem(GITHUB_KEY);
+    supabase.auth.updateUser({ data: { github_username: null } });
   };
 
   const handleLinkedinDisconnected = () => {
     setLinkedinConnected(false);
     setLinkedinProfile(null);
-    localStorage.removeItem(LINKEDIN_KEY);
+    supabase.auth.updateUser({
+      data: {
+        linkedin_connected: null,
+        linkedin_name: null,
+        linkedin_headline: null,
+        linkedin_photo_url: null,
+      },
+    });
   };
 
   const handleSelectRepo = (repo) => {
@@ -232,8 +257,6 @@ export default function Generator({ onNavigate, session }) {
   };
 
   const handleSignOut = async () => {
-    localStorage.removeItem(GITHUB_KEY);
-    localStorage.removeItem(LINKEDIN_KEY);
     await supabase.auth.signOut();
   };
 
