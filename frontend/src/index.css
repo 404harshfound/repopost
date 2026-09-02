@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+:root {
+  --surface: #f5f3f0;
+  --card: #ffffff;
+  --card-hover: #fafaf8;
+  --card-t: rgba(255, 255, 255, 0.8);
+  --elevated: #ebe8e4;
+  --elevated-hover: #e5e2de;
+
+  --ink: #1a1a1a;
+  --ink-secondary: #666666;
+  --ink-tertiary: #999999;
+  --ink-dim: #888888;
+  --ink-muted: #bbbbbb;
+  --ink-faint: #cccccc;
+  --ink-ghost: #dddddd;
+
+  --edge: #e8e5e1;
+  --edge-light: #f0eeeb;
+  --edge-muted: #e0ddd9;
+
+  --btn: #1a1a1a;
+  --btn-hover: #333333;
+  --btn-text: #ffffff;
+
+  --glow-core: rgba(10, 102, 194, 0.38);
+  --glow-mid: rgba(10, 102, 194, 0.22);
+  --glow-wash: rgba(30, 64, 130, 0.12);
+}
+
+[data-theme="dark"] {
+  --surface: #060606;
+  --card: #0e0e0e;
+  --card-hover: #151515;
+  --card-t: rgba(6, 6, 6, 0.82);
+  --elevated: #1a1a1a;
+  --elevated-hover: #222222;
+
+  --ink: #e8e5e0;
+  --ink-secondary: #9a9590;
+  --ink-tertiary: #6b6660;
+  --ink-dim: #807b75;
+  --ink-muted: #4a4540;
+  --ink-faint: #3a3530;
+  --ink-ghost: #1e1e1e;
+
+  --edge: rgba(255, 255, 255, 0.07);
+  --edge-light: rgba(255, 255, 255, 0.04);
+  --edge-muted: rgba(255, 255, 255, 0.10);
+
+  --btn: #e8e5e0;
+  --btn-hover: #d5d0ca;
+  --btn-text: #060606;
+
+  --glow-core: rgba(37, 99, 235, 0.55);
+  --glow-mid: rgba(10, 102, 194, 0.30);
+  --glow-wash: rgba(8, 30, 70, 0.55);
+}
+
+/*
+  Hero atmosphere: a broad ambient wash across the whole hero, plus a
+  tighter, brighter bloom hugging the floating preview card — a spotlight
+  behind the object, not paint on the page. Both read from the same
+  brand-blue hue (the LinkedIn accent used everywhere else), just diluted
+  for light mode and saturated for dark. One glow system, two intensities.
+*/
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 75% 55% at 50% 40%, var(--glow-mid) 0%, transparent 60%),
+    radial-gradient(ellipse 95% 70% at 50% 60%, var(--glow-wash) 0%, transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Same wash, tighter footprint — for compact single-card layouts (auth, empty generator state). */
+.hero-glow-sm {
+  position: absolute;
+  inset: -20% -5% -5% -5%;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 32%, var(--glow-mid) 0%, transparent 58%),
+    radial-gradient(ellipse 80% 60% at 50% 55%, var(--glow-wash) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-card-glow {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  width: 130%;
+  height: 260%;
+  background: radial-gradient(ellipse 50% 42% at 50% 45%, var(--glow-core) 0%, transparent 62%);
+  filter: blur(48px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-rise-delay {
+  animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-rise-delay {
+    animation: none;
+  }
+}
