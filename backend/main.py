@@ -1,6 +1,11 @@
 import os
 import json
+import hmac
+import hashlib
+import logging
 import secrets
+import time
+from collections import defaultdict
 from urllib.parse import urlencode
 
 from pathlib import Path
@@ -8,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent / ".env")
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, HTMLResponse
 from pydantic import BaseModel
@@ -17,12 +22,20 @@ from core.github_fetcher import fetch_repo_data
 from core.prompt_builder import build_prompt, TONE_TEMPERATURES
 from core.generator import generate_post
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
+
+# ── CORS — lock down to actual frontend origins ────────────
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+ALLOWED_ORIGINS = [origin.strip() for origin in FRONTEND_URL.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 VALID_TONES = {"professional", "hype", "technical"}
@@ -39,24 +52,73 @@ LINKEDIN_CLIENT_ID = os.getenv("LINKEDIN_CLIENT_ID", "")
 LINKEDIN_CLIENT_SECRET = os.getenv("LINKEDIN_CLIENT_SECRET", "")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
+# Secret for signing OAuth state cookies
+STATE_SECRET = os.getenv("STATE_SECRET", secrets.token_hex(32))
+
+# ── Simple in-memory rate limiter ──────────────────────────
+_rate_limit_store: dict[str, list[float]] = defaultdict(list)
+RATE_LIMIT_WINDOW = 60  # seconds
+RATE_LIMIT_MAX = 10  # requests per window
+
+
+def _check_rate_limit(client_ip: str) -> bool:
+    """Return True if the request should be allowed."""
+    now = time.time()
+    timestamps = _rate_limit_store[client_ip]
+    # Purge old entries
+    _rate_limit_store[client_ip] = [t for t in timestamps if now - t < RATE_LIMIT_WINDOW]
+    if len(_rate_limit_store[client_ip]) >= RATE_LIMIT_MAX:
+        return False
+    _rate_limit_store[client_ip].append(now)
+    return True
+
+
+# ── OAuth state helpers (HMAC-signed cookie) ───────────────
+def _sign_state(state: str) -> str:
+    """Create an HMAC signature for an OAuth state value."""
+    return hmac.new(STATE_SECRET.encode(), state.encode(), hashlib.sha256).hexdigest()
+
+
+def _make_state_cookie_value(state: str) -> str:
+    """Return 'state.signature' for the cookie."""
+    return f"{state}.{_sign_state(state)}"
+
+
+def _verify_state_cookie(cookie_value: str, returned_state: str) -> bool:
+    """Verify that the returned state matches the signed cookie."""
+    if not cookie_value or not returned_state:
+        return False
+    parts = cookie_value.split(".", 1)
+    if len(parts) != 2:
+        return False
+    stored_state, signature = parts
+    if stored_state != returned_state:
+        return False
+    expected_sig = _sign_state(stored_state)
+    return hmac.compare_digest(signature, expected_sig)
+
+
+# ── HTML response helpers ──────────────────────────────────
 
 def _oauth_result_page(data: dict) -> HTMLResponse:
     payload = json.dumps(data)
+    # Use the specific frontend origin instead of wildcard '*'
+    target_origin = ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else "*"
     return HTMLResponse(f"""<!DOCTYPE html>
 <html><head><title>Connected</title>
 <style>body{{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#1a1a1a;background:#f5f3f0}}</style>
 </head><body><p>Connected! This window will close...</p>
 <script>
-if(window.opener){{window.opener.postMessage({payload},'*');}}
+if(window.opener){{window.opener.postMessage({payload},'{target_origin}');}}
 setTimeout(()=>window.close(),1000);
 </script></body></html>""")
 
 
-def _oauth_error_page(message: str) -> HTMLResponse:
+def _oauth_error_page(user_message: str) -> HTMLResponse:
     return HTMLResponse(f"""<!DOCTYPE html>
 <html><head><title>Error</title>
 <style>body{{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#e53e3e;background:#f5f3f0}}</style>
-</head><body><p>{message}</p>
+</head><body><p>{user_message}</p>
 <script>setTimeout(()=>window.close(),3000);</script>
 </body></html>""", status_code=400)
 
@@ -66,20 +128,36 @@ def _oauth_error_page(message: str) -> HTMLResponse:
 @app.get("/auth/github")
 def auth_github():
     if not GITHUB_CLIENT_ID:
-        raise HTTPException(400, "GitHub OAuth not configured. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in .env")
+        raise HTTPException(400, "GitHub OAuth not configured.")
+    state = secrets.token_urlsafe(32)
     params = urlencode({
         "client_id": GITHUB_CLIENT_ID,
         "redirect_uri": f"{BACKEND_URL}/auth/github/callback",
-        "scope": "read:user public_repo",
-        "state": secrets.token_urlsafe(16),
+        "scope": "read:user",
+        "state": state,
     })
-    return RedirectResponse(f"https://github.com/login/oauth/authorize?{params}")
+    response = RedirectResponse(f"https://github.com/login/oauth/authorize?{params}")
+    response.set_cookie(
+        "oauth_state",
+        _make_state_cookie_value(state),
+        max_age=600,
+        httponly=True,
+        samesite="lax",
+        secure=BACKEND_URL.startswith("https"),
+    )
+    return response
 
 
 @app.get("/auth/github/callback")
-def auth_github_callback(code: str = "", error: str = ""):
+def auth_github_callback(request: Request, code: str = "", state: str = "", error: str = ""):
     if error or not code:
         return _oauth_error_page("GitHub authorization was denied.")
+
+    # Validate OAuth state
+    cookie_value = request.cookies.get("oauth_state", "")
+    if not _verify_state_cookie(cookie_value, state):
+        logger.warning("GitHub OAuth state mismatch — possible CSRF")
+        return _oauth_error_page("Authorization failed. Please try again.")
 
     try:
         token_res = httpx.post(
@@ -124,10 +202,13 @@ def auth_github_callback(code: str = "", error: str = ""):
                 if isinstance(r, dict)
             ],
         }
-        return _oauth_result_page(data)
+        response = _oauth_result_page(data)
+        response.delete_cookie("oauth_state")
+        return response
 
     except Exception as e:
-        return _oauth_error_page(f"GitHub connection failed: {e}")
+        logger.error("GitHub OAuth callback error: %s", e)
+        return _oauth_error_page("GitHub connection failed. Please try again.")
 
 
 # ── LinkedIn OAuth (OpenID Connect) ──────────────────────
@@ -135,21 +216,37 @@ def auth_github_callback(code: str = "", error: str = ""):
 @app.get("/auth/linkedin")
 def auth_linkedin():
     if not LINKEDIN_CLIENT_ID:
-        raise HTTPException(400, "LinkedIn OAuth not configured. Set LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET in .env")
+        raise HTTPException(400, "LinkedIn OAuth not configured.")
+    state = secrets.token_urlsafe(32)
     params = urlencode({
         "response_type": "code",
         "client_id": LINKEDIN_CLIENT_ID,
         "redirect_uri": f"{BACKEND_URL}/auth/linkedin/callback",
         "scope": "openid profile email",
-        "state": secrets.token_urlsafe(16),
+        "state": state,
     })
-    return RedirectResponse(f"https://www.linkedin.com/oauth/v2/authorization?{params}")
+    response = RedirectResponse(f"https://www.linkedin.com/oauth/v2/authorization?{params}")
+    response.set_cookie(
+        "oauth_state",
+        _make_state_cookie_value(state),
+        max_age=600,
+        httponly=True,
+        samesite="lax",
+        secure=BACKEND_URL.startswith("https"),
+    )
+    return response
 
 
 @app.get("/auth/linkedin/callback")
-def auth_linkedin_callback(code: str = "", error: str = ""):
+def auth_linkedin_callback(request: Request, code: str = "", state: str = "", error: str = ""):
     if error or not code:
         return _oauth_error_page("LinkedIn authorization was denied.")
+
+    # Validate OAuth state
+    cookie_value = request.cookies.get("oauth_state", "")
+    if not _verify_state_cookie(cookie_value, state):
+        logger.warning("LinkedIn OAuth state mismatch — possible CSRF")
+        return _oauth_error_page("Authorization failed. Please try again.")
 
     try:
         token_res = httpx.post(
@@ -183,10 +280,13 @@ def auth_linkedin_callback(code: str = "", error: str = ""):
             "photoUrl": userinfo.get("picture", ""),
             "headline": userinfo.get("headline", ""),
         }
-        return _oauth_result_page(data)
+        response = _oauth_result_page(data)
+        response.delete_cookie("oauth_state")
+        return response
 
     except Exception as e:
-        return _oauth_error_page(f"LinkedIn connection failed: {e}")
+        logger.error("LinkedIn OAuth callback error: %s", e)
+        return _oauth_error_page("LinkedIn connection failed. Please try again.")
 
 
 # ── Generate endpoint ────────────────────────────────────
@@ -198,7 +298,12 @@ class GenerateRequest(BaseModel):
 
 
 @app.post("/generate")
-def generate(req: GenerateRequest) -> dict:
+def generate(req: GenerateRequest, request: Request) -> dict:
+    # Rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="Too many requests. Please wait a minute and try again.")
+
     if req.tone not in VALID_TONES:
         raise HTTPException(status_code=422, detail=f"tone must be one of: {', '.join(VALID_TONES)}")
 
@@ -208,7 +313,8 @@ def generate(req: GenerateRequest) -> dict:
     try:
         repo_data = fetch_repo_data(req.repo_url)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Failed to fetch repo data: {e}")
+        logger.error("Failed to fetch repo data for %s: %s", req.repo_url, e)
+        raise HTTPException(status_code=502, detail=str(e))
 
     if repo_data.get("name") is None:
         raise HTTPException(status_code=404, detail="Repository not found. Check the URL and make sure it's a public repo.")
@@ -223,3 +329,10 @@ def generate(req: GenerateRequest) -> dict:
         raise HTTPException(status_code=500, detail=post)
 
     return {"post": post, "repo_data": repo_data}
+
+
+# ── Health check ─────────────────────────────────────────
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

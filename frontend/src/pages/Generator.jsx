@@ -134,6 +134,9 @@ export default function Generator({ onNavigate, session }) {
   // Listen for OAuth popup messages (GitHub/LinkedIn connect from Settings)
   useEffect(() => {
     const handleMessage = (event) => {
+      // Security: only accept messages from our own origin
+      if (event.origin !== window.location.origin) return;
+
       const { data } = event;
       if (!data?.type) return;
 
