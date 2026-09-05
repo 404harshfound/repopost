@@ -83,8 +83,7 @@ def fetch_repo_data(repo_url: str) -> dict:
         if r.status_code == 200:
             commits = r.json()
             result["recent_commits"] = [
-                c["commit"]["message"].split("
-")[0] for c in commits
+                c["commit"]["message"].split("\n")[0] for c in commits
             ]
         else:
             logger.warning("Failed to fetch commits for %s/%s: HTTP %d", owner, repo, r.status_code)
@@ -117,8 +116,7 @@ if __name__ == "__main__":
         "https://github.com/langchain-ai/langchain",
     ]
     for url in test_urls:
-        print(f"
-{'='*60}")
+        print(f"\n{'='*60}")
         print(f"Fetching: {url}")
         print("=" * 60)
         data = fetch_repo_data(url)
