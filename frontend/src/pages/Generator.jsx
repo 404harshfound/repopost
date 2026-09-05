@@ -134,8 +134,10 @@ export default function Generator({ onNavigate, session }) {
   // Listen for OAuth popup messages (GitHub/LinkedIn connect from Settings)
   useEffect(() => {
     const handleMessage = (event) => {
-      // Security: only accept messages from our own origin
-      if (event.origin !== window.location.origin) return;
+      // Security: only accept messages from our backend (popup) origin
+      // or our own origin (for local dev where vite proxies the backend)
+      const apiOrigin = API_URL ? new URL(API_URL).origin : window.location.origin;
+      if (event.origin !== apiOrigin && event.origin !== window.location.origin) return;
 
       const { data } = event;
       if (!data?.type) return;
