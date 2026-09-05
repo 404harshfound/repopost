@@ -147,15 +147,15 @@ export default function Landing({ onNavigate }) {
           <div className="mt-16 sm:mt-24 rounded-3xl bg-[var(--card)] p-6 sm:p-8 shadow-[0_2px_20px_rgba(0,0,0,0.08)] border border-[var(--edge)] max-w-lg mx-auto backdrop-blur-sm">
             <div className="rounded-2xl bg-[var(--surface)] p-6 border border-[var(--edge-light)]">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-2.5 h-2.5 rounded-full bg-[var(--ink-ghost)]" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[var(--ink-ghost)]" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[var(--ink-ghost)]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-current opacity-20" />
+                <div className="w-2.5 h-2.5 rounded-full bg-current opacity-20" />
+                <div className="w-2.5 h-2.5 rounded-full bg-current opacity-20" />
               </div>
               <div className="space-y-2.5">
-                <div className="h-3 rounded-full bg-[var(--edge-muted)] w-3/4" />
-                <div className="h-3 rounded-full bg-[var(--edge-muted)] w-full" />
-                <div className="h-3 rounded-full bg-[var(--edge-muted)] w-5/6" />
-                <div className="h-3 rounded-full bg-[var(--edge-muted)] w-2/3" />
+                <div className="h-3 rounded-full bg-current opacity-[0.15] w-3/4" />
+                <div className="h-3 rounded-full bg-current opacity-[0.15] w-full" />
+                <div className="h-3 rounded-full bg-current opacity-[0.15] w-5/6" />
+                <div className="h-3 rounded-full bg-current opacity-[0.15] w-2/3" />
               </div>
             </div>
             <p className="mt-5 text-center text-[13px] text-[var(--ink-muted)]">
